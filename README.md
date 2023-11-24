@@ -55,23 +55,20 @@ hardware in the cloud, then
    * Select your server.
    * Select **Rescue** from the menu and then **Enable rescue & power cycle**.
    * Select **linux64** and **your previously selected ssh pubkey**.
+
+4. Run the installer script on the rescue server.
+
    * Wait some seconds until the rescue system has booted.
    * You should now `ssh root@IPADDR` into the rescue system. **You will
      access your server's disk and install Gentoo from here.**
-   * Leave this session open.
-
-4. Download the installer script.
-
    * Download the 
-    [Installer Script](scripts/installer/gentoo-arm64-setup-on-hetzner.sh) 
-    from this repo.
-   * Assert the script is executable: `chmod 700 SCRIPT`.
-   * Copy the script to the rescue server: `rsync SCRIPT root@IPADDR:/root`.
-
-5. Run the installer script on the rescue server.
-
-   * Execute the script: `./gentoo-arm64-setup-on-hetzner.sh`
-   * Confirm the installation with `y`.
+    [Installer Script](scripts/installer/gentoo-arm64-setup-on-hetzner.sh),
+    make it executable, and run it:
+```
+wget https://raw.githubusercontent.com/m1027/gentoo-utils/main/scripts/installer/gentoo-arm64-setup-on-hetzner.sh
+chmod 700 gentoo-arm64-setup-on-hetzner.sh
+./gentoo-arm64-setup-on-hetzner.sh
+```
 
 Enjoy!
 
