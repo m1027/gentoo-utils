@@ -5,7 +5,7 @@
 #
 
 disk="/dev/sda"
-stage3="stage3-arm64-systemd-mergedusr-20231022T231657Z.tar.xz"
+stage3="stage3-arm64-systemd-mergedusr-20231119T204701Z.tar.xz"
 kernel="6.1.y"
 
 #
