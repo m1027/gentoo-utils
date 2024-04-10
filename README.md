@@ -59,18 +59,14 @@ or **amd64** hardware in the cloud, then
 4. Run the installer script on the rescue server.
 
    * Wait some seconds until the rescue system has booted.
-   * You should now `ssh root@IPADDR` into the rescue system. **You will
-     access your server's disk and install Gentoo from here.**
+   * Enter the rescue system: `ssh root@IPADDR`.
    * Download the 
-    [Installer Script](scripts/installer/gentoo-setup-on-hetzner.sh) and
-    make it executable:
+    [Installer Script](scripts/installer/gentoo-setup-on-hetzner.sh),
+    make it executable and run it:
 ```
 wget https://raw.githubusercontent.com/m1027/gentoo-utils/main/scripts/installer/gentoo-setup-on-hetzner.sh
 chmod u+x gentoo-setup-on-hetzner.sh
-```
-   * Run the script (replace ARCH with `arm64` or `amd64`):
-```
-./gentoo-setup-on-hetzner.sh ARCH
+./gentoo-setup-on-hetzner.sh ARCH  # <- Replace ARCH with arm64 or amd64
 ```
 
 
@@ -80,8 +76,8 @@ Enjoy!
 
 * The script is designed to skip downloads when re-run after failures.
 * In case you need to reboot **into** the rescue system again, remember to
-  enable the rescue mode previously again. Normally, rebooting the rescue
-  system boots your server build next.
+  enable the rescue mode again, before rebooting (normally, rebooting the
+  rescue system boots your server build next).
 * There is a `vnc`-like view for running servers. Locate the console icon
   in Hetzner's web interface.
 
@@ -91,7 +87,7 @@ Enjoy!
   not to the bare minium.
 * Due to changed fingerprints `ssh` may refuse to connect to your server. You
   may need to edit your `~/.ssh/known_hosts` once.
-* While ssh access works, for amd64 based servers Hetzner's pseudo-graphical
-  rescue console for the new server may not yet show a correct console buffer
-  to login from there.
+* For amd64 (not arm64): While ssh access works, Hetzner's `vnc`-like view
+  for running servers may not yet show a correct console buffer to login from
+  there.
 
