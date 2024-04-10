@@ -67,7 +67,8 @@ or **amd64** hardware in the cloud, then
 ```
 wget https://raw.githubusercontent.com/m1027/gentoo-utils/main/scripts/installer/gentoo-setup-on-hetzner.sh
 chmod u+x gentoo-setup-on-hetzner.sh
-   * Run the script (replace ARCH with `arm64` or `amd64`)
+```
+   * Run the script (replace ARCH with `arm64` or `amd64`):
 ```
 ./gentoo-setup-on-hetzner.sh ARCH
 ```
