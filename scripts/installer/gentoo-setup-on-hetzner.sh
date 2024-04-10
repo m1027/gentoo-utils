@@ -5,14 +5,38 @@
 #
 
 disk="/dev/sda"
-stage3="stage3-arm64-systemd-mergedusr-20231119T204701Z.tar.xz"
-kernel="6.1.y"
+kernel="6.6.y"
 
 #
 # (end)
 #
 
-stage3_url="http://distfiles.gentoo.org/releases/arm64/autobuilds/current-stage3-arm64-systemd-mergedusr"
+arch="${1}"
+if [[ -z "${arch}" ]]; then
+	printf "\
+Usage: %s ARCH
+	Where ARCH is either arm64 or amd64.
+" "${0}"
+	exit 1
+fi
+
+case "${arch}" in
+	arm64)
+		stage3_url="https://distfiles.gentoo.org/releases/arm64/autobuilds/current-stage3-arm64-systemd-mergedusr"
+		state3_msg="latest-stage3-arm64-systemd-mergedusr.txt"
+		kernelimage="Image"
+		kernelarch="arm64"
+		efi="BOOTAA64"
+		;;
+	*)
+		stage3_url="https://distfiles.gentoo.org/releases/amd64/autobuilds/current-stage3-amd64-nomultilib-systemd-mergedusr"
+		state3_msg="latest-stage3-amd64-nomultilib-systemd-mergedusr.txt"
+		kernelimage="bzImage"
+		kernelarch="x86"
+		efi="BOOTX64"
+		;;
+esac
+
 kernel_url="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git"
 wd="/root"
 os="/mnt/gentoo"
@@ -21,11 +45,13 @@ portage_url="http://distfiles.gentoo.org/snapshots"
 portage_dir="/var/db/repos/gentoo"
 ssh_pubkey=".ssh/robot_user_keys"
 
-printf "Gentoo Setup (arm64)
+printf "Gentoo Setup
 
+arch:       ${arch}
 disk:       ${disk}
-stage3:     ${stage3}
 kernel:     ${kernel}
+
+Ctrl-C now if this setup does not match your needs.
 
 Assert to have added your ssh pubkey during server setup since it will
 be used as the ssh key to access the new Gentoo system after reboot.
@@ -48,8 +74,8 @@ function unmount ()
 {
 	umount ${os}/boot &> /dev/null
 	umount ${os}/proc &> /dev/null
-	umount -l ${os}/dev &> /dev/null
-	umount -l ${os}/sys &> /dev/null
+	umount --recursive ${os}/dev &> /dev/null
+	umount --recursive ${os}/sys &> /dev/null
 	umount ${os}/tmp &>/dev/null
 	umount ${os} &>/dev/null
 }
@@ -59,16 +85,45 @@ unmount
 
 cd ${wd}
 
+printf "* Getting URL of latest stage3 archive...\n"
+wget "${stage3_url}/${state3_msg}"
+while read -r line
+do
+	IFS=' ' read -r f1 f2 <<<"$line"
+	if [[ "${f1}" =~ stage3-* ]]; then
+		stage3="${f1}"
+		break
+	fi
+done <"${state3_msg}"
+[[ ! -z "${stage3}" ]] || die "stage3 archive not found"
+printf "* Latest stage3 archive found: %s\n" "${stage3}"
+
 printf "* Asserting local ssh pubkeys are present...\n"
 [ -f ${wd}/${ssh_pubkey} ] || die "ssh pubkey missing, add you pubkey via the cloud console"
 
 printf "* Creating partitions...\n"
-sfdisk --quiet --label gpt --wipe always --wipe-partitions always "${disk}" <<EOF
-,256M,U
-,4G,S
-,,L
-EOF
-[ $? == 0 ] || die "sfdisk"
+case "${arch}" in
+	arm64)
+		sfdisk --quiet --label gpt --wipe always --wipe-partitions always "${disk}" <<-EOF
+		,256M,U
+		,4G,S
+		,,L
+		EOF
+		[ $? == 0 ] || die "sfdisk"
+		;;
+	*)
+		# amd64 needs grub + DOS partition type
+		sfdisk --quiet --label dos --wipe always --wipe-partitions always "${disk}" <<-EOF
+		,256M,0c,*
+		,4G,S
+		,,L
+		EOF
+		[ $? == 0 ] || die "sfdisk"
+		;;
+esac
+
+printf "* Waiting 10 sec after partitioning...\n"
+sleep 10
 
 printf "* Creating boot partition...\n"
 mkfs.vfat -F32 ${disk}1 1>/dev/null || die
@@ -148,6 +203,25 @@ mount --rbind /sys ${os}/sys || die "mounting sys"
 mount --make-rslave ${os}/dev || die "make-rslave dev"
 mount --make-rslave ${os}/sys || die "make-rslave sys"
 mount -t tmpfs none ${os}/tmp || die "mounting tmpfs"
+
+printf "* Copying resolv.conf for network access...\n"
+cp /etc/resolv.conf ${os}/etc/
+
+case "${arch}" in
+	amd64)
+		printf "* Prepare tools for kernel and grub... (chroot)\n"
+		LC_ALL=C chroot ${os} /bin/bash <<-EOF
+		locale-gen
+		env-update
+		. /etc/profile
+		emerge elfutils &&
+		USE="-fonts -nls -themes -grub_platforms_efi-64 grub_platforms_pc" emerge grub
+		EOF
+		[ $? == 0 ] || die "kernel tool setup (in chroot)"
+		;;
+	*)
+		;;
+esac
 
 printf "* Setting up kernel, machine-id, ssh... (chroot)\n"
 LC_ALL=C chroot ${os} /bin/bash <<EOF
@@ -233,14 +307,30 @@ for i in \
 	DEBUG_KERNEL \
 	XEN \
 	MODULES; do ./scripts/config --disable \$i; done &&
-./scripts/config --set-str CMDLINE "init=/usr/lib/systemd/systemd root=/dev/sda3 rootfstype=ext4" &&
-make --jobs=4 Image
+./scripts/config --set-str CMDLINE "init=/usr/lib/systemd/systemd root=/dev/sda3 rootwait rootfstype=ext4" &&
+make --jobs=4 ${kernelimage}
 EOF
 [ $? == 0 ] || die "kernel and other inital setup (in chroot)"
 
 printf "* Copying kernel to boot partition...\n"
-mkdir -p ${os}/boot/EFI/BOOT || die
-cp -a ${os}/usr/src/linux/arch/arm64/boot/Image ${os}/boot/EFI/BOOT/BOOTAA64.EFI || die "copying kernel"
+case "${arch}" in
+	arm64)
+		mkdir -p ${os}/boot/EFI/BOOT || die
+		cp -a ${os}/usr/src/linux/arch/${kernelarch}/boot/${kernelimage} ${os}/boot/EFI/BOOT/${efi}.EFI || die "copying kernel"
+		;;
+	*)
+		LC_ALL=C chroot ${os} /bin/bash <<-EOF
+		env-update
+		. /etc/profile
+		printf "GRUB_TIMEOUT=3\nGRUB_TIMEOUT_STYLE=menu\nGRUB_CMDLINE_LINUX=\"init=/usr/lib/systemd/systemd rootfstype=ext4 root=/dev/sda3 rw rootwait\"\n" > /etc/default/grub &&
+		grub-install --target=i386-pc --boot-directory=/boot /dev/sda &&
+		cp /usr/src/linux/arch/x86/boot/bzImage /boot/kernel-1-working &&
+		cp /usr/src/linux/arch/x86/boot/bzImage /boot/kernel-2-new &&
+		grub-mkconfig -o /boot/grub/grub.cfg
+		EOF
+		;;
+esac
+[ $? == 0 ] || die "kernel tool setup (in chroot)"
 
 printf "* Saving /root/readme-setup.txt...\n"
 printf "\

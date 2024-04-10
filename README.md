@@ -3,16 +3,16 @@
 This repository aims to deliver useful tools for
 [Gentoo Linux](https://www.gentoo.org/).
 
-## Installer for Gentoo on Hetzner's arm64 Cloud Servers
+## Installer for Gentoo on Hetzner's arm64/amd64 Cloud Servers
 
 ### Why
 
 If you want to setup [Gentoo Linux](https://www.gentoo.org/) on **arm64**
-hardware in the cloud, then
+or **amd64** hardware in the cloud, then
 
 * Checkout [Hetzner](https://www.hetzner.com/?country=en) and their Linux
-  based **Cloud** servers for **arm64**. While Gentoo is not amoung the
-  prepared ISOs you can install it manually, too.
+  based **Cloud** servers for **arm64** or **amd64**. While Gentoo is not
+  amoung the prepared ISOs you can install it manually, too.
 * Use the **documentation** and **installer script** below to
   simplify the Gentoo setup.
 
@@ -34,7 +34,7 @@ hardware in the cloud, then
      [Hetzner.com](https://www.hetzner.com/?country=en).
    * Register an account without fee. Authorization may work entirely online.
 
-2. Create an arm64 server.
+2. Create a server.
 
    * When you have your account, enter the **Cloud** administrative
      dashboard.
@@ -43,8 +43,8 @@ hardware in the cloud, then
    * Select **Servers** and then **Add Server**.
    * Go through all necessary configuration steps. The minimum required here
      are: Location, Image (use Debian which sets up in seconds), Type (use
-     **vCPU + Arm64**), Networking (do not disable IPv4), SSH keys
-     (**crucial: Paste your ssh pubkey**), the rest is not required.
+     **vCPU + Arm64** or **vCPU + Amd64**), Networking (do not disable IPv4),
+     SSH keys (**crucial: Paste your ssh pubkey**), the rest is not required.
    * Wait some seconds for the server to be setup.
    * You will receive an IP address. You may access the system via ssh but
      this is not required.
@@ -62,20 +62,21 @@ hardware in the cloud, then
    * You should now `ssh root@IPADDR` into the rescue system. **You will
      access your server's disk and install Gentoo from here.**
    * Download the 
-    [Installer Script](scripts/installer/gentoo-arm64-setup-on-hetzner.sh),
-    make it executable, and run it:
+    [Installer Script](scripts/installer/gentoo-setup-on-hetzner.sh) and
+    make it executable:
 ```
-wget https://raw.githubusercontent.com/m1027/gentoo-utils/main/scripts/installer/gentoo-arm64-setup-on-hetzner.sh
-chmod 700 gentoo-arm64-setup-on-hetzner.sh
-./gentoo-arm64-setup-on-hetzner.sh
+wget https://raw.githubusercontent.com/m1027/gentoo-utils/main/scripts/installer/gentoo-setup-on-hetzner.sh
+chmod u+x gentoo-setup-on-hetzner.sh
+   * Run the script (replace ARCH with `arm64` or `amd64`)
 ```
+./gentoo-setup-on-hetzner.sh ARCH
+```
+
 
 Enjoy!
 
 ### If the installation fails
 
-* In case of an installation failure observe the error message and try to
-  fix the root cause. Else file an issue.
 * The script is designed to skip downloads when re-run after failures.
 * In case you need to reboot **into** the rescue system again, remember to
   enable the rescue mode previously again. Normally, rebooting the rescue
@@ -83,13 +84,13 @@ Enjoy!
 * There is a `vnc`-like view for running servers. Locate the console icon
   in Hetzner's web interface.
 
-### Todo
+### Known issues && Todo
 
-* The installer script does not lookup for the most recent `stage3` OS build
-  yet. So the download link may become outdated or invalid. Adjust the URL
-  in that case.
 * The created kernel will be stripped down during installation but probably
   not to the bare minium.
 * Due to changed fingerprints `ssh` may refuse to connect to your server. You
-  may fix that by editing your `~/.ssh/known_hosts`.
+  may need to edit your `~/.ssh/known_hosts` once.
+* While ssh access works, for amd64 based servers Hetzner's pseudo-graphical
+  rescue console for the new server may not yet show a correct console buffer
+  to login from there.
 
