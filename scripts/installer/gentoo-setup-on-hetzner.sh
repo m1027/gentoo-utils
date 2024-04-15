@@ -22,15 +22,15 @@ fi
 
 case "${arch}" in
 	arm64)
-		stage3_url="https://distfiles.gentoo.org/releases/arm64/autobuilds/current-stage3-arm64-systemd-mergedusr"
-		state3_msg="latest-stage3-arm64-systemd-mergedusr.txt"
+		stage3_url="https://distfiles.gentoo.org/releases/arm64/autobuilds/current-stage3-arm64-systemd"
+		state3_msg="latest-stage3-arm64-systemd.txt"
 		kernelimage="Image"
 		kernelarch="arm64"
 		efi="BOOTAA64"
 		;;
 	*)
-		stage3_url="https://distfiles.gentoo.org/releases/amd64/autobuilds/current-stage3-amd64-nomultilib-systemd-mergedusr"
-		state3_msg="latest-stage3-amd64-nomultilib-systemd-mergedusr.txt"
+		stage3_url="https://distfiles.gentoo.org/releases/amd64/autobuilds/current-stage3-amd64-nomultilib-systemd"
+		state3_msg="latest-stage3-amd64-nomultilib-systemd.txt"
 		kernelimage="bzImage"
 		kernelarch="x86"
 		efi="BOOTX64"
