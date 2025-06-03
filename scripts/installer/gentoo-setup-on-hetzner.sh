@@ -5,7 +5,8 @@
 #
 
 disk="/dev/sda"
-kernel="6.6.y"
+#kernel="6.12.y"
+kernel="rolling-lts"
 
 #
 # (end)
