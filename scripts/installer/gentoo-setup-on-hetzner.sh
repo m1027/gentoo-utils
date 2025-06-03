@@ -12,29 +12,32 @@ kernel="rolling-lts"
 # (end)
 #
 
-arch="${1}"
-if [[ -z "${arch}" ]]; then
-	printf "\
-Usage: %s ARCH
-	Where ARCH is either arm64 or amd64.
-" "${0}"
+function die ()
+{
+	[ "$1" == "" ] || printf "Error: $1\n"
+	printf "Aborted.\n"
 	exit 1
-fi
+}
+
+arch="$(uname -m)"
 
 case "${arch}" in
-	arm64)
+	aarch64)
 		stage3_url="https://distfiles.gentoo.org/releases/arm64/autobuilds/current-stage3-arm64-systemd"
 		state3_msg="latest-stage3-arm64-systemd.txt"
 		kernelimage="Image"
 		kernelarch="arm64"
 		efi="BOOTAA64"
 		;;
-	*)
+	x86_64)
 		stage3_url="https://distfiles.gentoo.org/releases/amd64/autobuilds/current-stage3-amd64-nomultilib-systemd"
 		state3_msg="latest-stage3-amd64-nomultilib-systemd.txt"
 		kernelimage="bzImage"
 		kernelarch="x86"
 		efi="BOOTX64"
+		;;
+	*)
+		die "target arch ${arch} not detected or not implemented"
 		;;
 esac
 
@@ -63,13 +66,6 @@ if [[ "${answer}" != "y" ]]; then
 	printf "Aborted.\n"
 	exit 0
 fi
-
-function die ()
-{
-	[ "$1" == "" ] || printf "Error: $1\n"
-	printf "Aborted.\n"
-	exit 1
-}
 
 function unmount ()
 {
@@ -104,7 +100,7 @@ printf "* Asserting local ssh pubkeys are present...\n"
 
 printf "* Creating partitions...\n"
 case "${arch}" in
-	arm64)
+	aarch64)
 		sfdisk --quiet --label gpt --wipe always --wipe-partitions always "${disk}" <<-EOF
 		,256M,U
 		,4G,S
@@ -209,7 +205,7 @@ printf "* Copying resolv.conf for network access...\n"
 cp /etc/resolv.conf ${os}/etc/
 
 case "${arch}" in
-	amd64)
+	x86_64)
 		printf "* Prepare tools for kernel and grub... (chroot)\n"
 		LC_ALL=C chroot ${os} /bin/bash <<-EOF
 		locale-gen
@@ -315,7 +311,7 @@ EOF
 
 printf "* Copying kernel to boot partition...\n"
 case "${arch}" in
-	arm64)
+	aarch64)
 		mkdir -p ${os}/boot/EFI/BOOT || die
 		cp -a ${os}/usr/src/linux/arch/${kernelarch}/boot/${kernelimage} ${os}/boot/EFI/BOOT/${efi}.EFI || die "copying kernel"
 		;;
