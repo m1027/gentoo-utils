@@ -18,7 +18,7 @@ or **amd64** hardware in the cloud, then
 
 ### Feature overview of this approach
 
-* Cloud server costs: As there are no setup fees and a price per 
+* Cloud server costs: As there are no setup fees and a price per
   hour, testing this setup is affordable. Servers can be deleted again at
   any time to avoid paying for it.
 * The installer script entirely wipes the server disk (from a rescue system),
@@ -60,15 +60,15 @@ or **amd64** hardware in the cloud, then
 
    * Wait some seconds until the rescue system has booted.
    * Enter the rescue system: `ssh root@IPADDR`.
-   * Download the 
+   * Download the
     [Installer Script](scripts/installer/gentoo-setup-on-hetzner.sh),
     make it executable and run it:
-```
-wget https://raw.githubusercontent.com/m1027/gentoo-utils/main/scripts/installer/gentoo-setup-on-hetzner.sh
-chmod u+x gentoo-setup-on-hetzner.sh
-./gentoo-setup-on-hetzner.sh ARCH  # <- Replace ARCH with arm64 or amd64
-```
 
+    ```bash
+    wget https://raw.githubusercontent.com/m1027/gentoo-utils/main/scripts/installer/gentoo-setup-on-hetzner.sh
+    chmod u+x gentoo-setup-on-hetzner.sh
+    ./gentoo-setup-on-hetzner.sh ARCH  # <- Replace ARCH with arm64 or amd64
+    ```
 
 Enjoy!
 
@@ -90,4 +90,3 @@ Enjoy!
 * For amd64 (not arm64): While ssh access works, Hetzner's `vnc`-like view
   for running servers may not yet show a correct console buffer to login from
   there.
-
