@@ -207,7 +207,7 @@ cp /etc/resolv.conf ${os}/etc/
 case "${arch}" in
 	x86_64)
 		printf "* Prepare tools for kernel and grub... (chroot)\n"
-		LC_ALL=C chroot ${os} /bin/bash <<-EOF
+		LC_ALL=C.UTF-8 chroot ${os} /bin/bash <<-EOF
 		locale-gen
 		env-update
 		. /etc/profile
@@ -221,7 +221,7 @@ case "${arch}" in
 esac
 
 printf "* Setting up kernel, machine-id, ssh... (chroot)\n"
-LC_ALL=C chroot ${os} /bin/bash <<EOF
+LC_ALL=C.UTF-8 chroot ${os} /bin/bash <<EOF
 locale-gen
 env-update
 . /etc/profile
@@ -316,7 +316,7 @@ case "${arch}" in
 		cp -a ${os}/usr/src/linux/arch/${kernelarch}/boot/${kernelimage} ${os}/boot/EFI/BOOT/${efi}.EFI || die "copying kernel"
 		;;
 	*)
-		LC_ALL=C chroot ${os} /bin/bash <<-EOF
+		LC_ALL=C.UTF-8 chroot ${os} /bin/bash <<-EOF
 		env-update
 		. /etc/profile
 		printf "GRUB_TIMEOUT=3\nGRUB_TIMEOUT_STYLE=menu\nGRUB_CMDLINE_LINUX=\"init=/usr/lib/systemd/systemd rootfstype=ext4 root=/dev/sda3 rw rootwait\"\n" > /etc/default/grub &&
