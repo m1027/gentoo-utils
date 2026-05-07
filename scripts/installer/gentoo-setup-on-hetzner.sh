@@ -211,7 +211,7 @@ case "${arch}" in
 		locale-gen
 		env-update
 		. /etc/profile
-		emerge elfutils &&
+		emerge elfutils sys-devel/bc &&
 		USE="-fonts -nls -themes -grub_platforms_efi-64 grub_platforms_pc" emerge grub
 		EOF
 		[ $? == 0 ] || die "kernel tool setup (in chroot)"
